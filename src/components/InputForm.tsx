@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { UserInput } from '../types';
-import { Sparkles, Calendar, BookOpen, ChevronRight, GraduationCap } from 'lucide-react';
+import { Sparkles, Calendar, BookOpen, ChevronRight, GraduationCap, Zap } from 'lucide-react';
 
 interface InputFormProps {
-  onSubmit: (input: UserInput) => void;
+  onSubmit: (input: UserInput, isForceOffline: boolean) => void;
   isLoading: boolean;
 }
 
@@ -26,6 +26,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
   const [majorGap, setMajorGap] = useState<number>(9);
   const [generalGap, setGeneralGap] = useState<number>(3);
   const [customKeywords, setCustomKeywords] = useState<string>('');
+  const [isForceOffline, setIsForceOffline] = useState<boolean>(false);
 
   const handleFreeDayToggle = (day: string) => {
     if (preferredFreeDays.includes(day)) {
@@ -58,7 +59,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
         generalElective: generalGap,
       },
       customKeywords: customKeywords.trim()
-    });
+    }, isForceOffline);
   };
 
   return (
@@ -257,6 +258,43 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
                 {preset}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Offline Mode Selection Toggle */}
+        <div className={`p-4 rounded-xl border transition-all ${
+          isForceOffline 
+            ? 'bg-blue-500/10 border-blue-500/30' 
+            : 'bg-slate-800/20 border-slate-800'
+        }`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-2.5">
+              <div className={`p-2 rounded-lg shrink-0 ${
+                isForceOffline ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-400'
+              }`}>
+                <Zap className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <span className="block text-xs font-bold text-white">오프라인 조건 분산 처리 모드</span>
+                <span className="block text-[11px] text-slate-400 mt-1 leading-normal">
+                  서버 연결 실패 혹은 분석 지연 걱정 없이, 기기 내부의 고연산 제약 조건 솔버를 작동하여 실시간으로 완전 충돌 회피형 시간표를 빌딩합니다.
+                </span>
+              </div>
+            </div>
+            <button
+              id="btn-toggle-offline"
+              type="button"
+              onClick={() => setIsForceOffline(!isForceOffline)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isForceOffline ? 'bg-[#dcfd8b]' : 'bg-slate-705'
+              } ${isForceOffline ? 'bg-blue-500' : 'bg-slate-700'}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${
+                  isForceOffline ? 'translate-x-5 bg-[#0f172a]' : 'translate-x-0 bg-slate-300'
+                }`}
+              />
+            </button>
           </div>
         </div>
 

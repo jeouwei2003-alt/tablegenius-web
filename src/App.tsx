@@ -10,7 +10,8 @@ import { FeedbackView } from './components/FeedbackView';
 import { HistoryView } from './components/HistoryView';
 import { ShareView } from './components/ShareView';
 import { UserInput, TimetableResult } from './types';
-import { Sparkles, Compass, AlertCircle, BookOpen, Clock, Calendar, HelpCircle } from 'lucide-react';
+import { solveTimetable } from './utils/solver';
+import { Sparkles, Compass, AlertCircle, BookOpen, Clock, Calendar, HelpCircle, Zap } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'features' | 'about' | 'feedback' | 'history' | 'share'>('home');
@@ -26,12 +27,32 @@ export default function App() {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleGenerateTimetable = async (input: UserInput) => {
+  const handleGenerateTimetable = async (input: UserInput, isForceOffline: boolean) => {
     setIsLoading(true);
     setError(null);
 
     // Scroll slightly down to make the progress state visible
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+    if (isForceOffline) {
+      // Simulate slight delay for professional visual loading state
+      setTimeout(() => {
+        try {
+          const localData = solveTimetable(input, true);
+          setResult(localData);
+          setIsLoading(false);
+          // Smooth scroll to the result view
+          setTimeout(() => {
+            resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        } catch (e: any) {
+          console.error(e);
+          setError('오프라인 분석 중 예기치 못한 오류가 발생했습니다.');
+          setIsLoading(false);
+        }
+      }, 700);
+      return;
+    }
 
     try {
       const response = await fetch('/api/recommend', {
@@ -54,8 +75,21 @@ export default function App() {
         resultRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch (e: any) {
-      console.error(e);
-      setError('서버 연결 실패 혹은 분석 지연이 발생하여 결과를 가져올 수 없었습니다. 오프라인 조건 처리 모드로 재시도 바랍니다.');
+      console.warn('Network or server fallback triggered:', e);
+      // Run the local solver with isOffline = true
+      try {
+        const localData = solveTimetable(input, true);
+        setResult(localData);
+        setError('서버 연결 실패 및 수시 지연이 감지되었으나, 오프라인 조건 처리 모드로 즉각 복구하여 시간표를 정상 도출했습니다.');
+        
+        // Scroll to the result as well
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      } catch (err) {
+        console.error('Offline solver failed too:', err);
+        setError('서버 연결 실패 혹은 분석 지연이 발생하여 결과를 가져올 수 없었습니다. 오프라인 조건 처리 모드로 재시도 바랍니다.');
+      }
     } finally {
       setIsLoading(false);
     }
