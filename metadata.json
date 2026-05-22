@@ -1,0 +1,6 @@
+{
+  "name": "TableGenius",
+  "description": "AI-powered University Timetable Recommendation System",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
